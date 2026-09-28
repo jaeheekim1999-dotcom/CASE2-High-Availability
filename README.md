@@ -44,6 +44,4 @@ flowchart TB
     CO <-. 상태 감시 .-> P
     CO <-. 상태 감시 .-> S
     P -- 장애 시 즉시 절체 1초 이내 --> S
-<img width="2061" height="889" alt="case2_tradeoff" src="https://github.com/user-attachments/assets/0e31814e-dad3-4e1d-9d86-dda9aba23b61" />
-<img width="2016" height="1140" alt="case2_architecture" src="https://github.com/user-attachments/assets/2d40a72b-12aa-43e2-9f3f-5840b03b83d9" />
-
+<img width="2016" height="1140" alt="case2_architecture" src="https://github.com/user-attachments/assets/47d0e59e-582d-486f-9d57-c0d45810133a" />
