@@ -1,2 +1,49 @@
-# CASE2-High-Availability
-Cut downtime by 99%+ (tens of minutes to under 1 second) with N+2 redundancy and instant Coordinator failover, accepting 2x initial server cost.
+# Case 2. 고가용성: 수동 복구 → N+2 이중화 · Coordinator 즉시 절체
+
+서버 장애 시 운영자 수동 복구로 수십 분 멈추던 구조를 N+2 이중화와 Coordinator 즉시 절체로 바꿔 **다운타임을 99% 이상 단축(1초 이내)** 한 실무 사례입니다.
+
+| 문제 | 설계 결정 | 트레이드오프 | 결과 |
+|---|---|---|---|
+| 장애 시 수동 복구로 수십 분 중단 | N+2 이중화 + Coordinator 즉시 절체 | 초기 비용 **2배** | 다운타임 **99% 이상 단축**(1초 이내) |
+
+
+## 제약 조건
+- **문제**: 서버 장애가 나면 운영자가 직접 접속해 문제를 확인하고 복구해야 했습니다. 복구까지 **수십 분 이상** 서비스가 멈췄습니다.
+- **요구**: 장애가 나도 서비스가 멈추지 않는 무중단 운영
+
+## 검토한 대안
+| 대안 | 초기 비용 | 장애 시 다운타임 | 판단 |
+|---|---|---|---|
+| 단일 서버 유지 | 1배 | 수십 분 이상 (운영자 의존) | 복구 시간을 통제할 수 없음 |
+| **N+2 이중화 + Coordinator (채택)** | **2배** | **1초 이내** | 비용 증가를 기술 근거로 설득 |
+
+## 설계 결정
+- **동일 스펙 서버 2대**: Primary와 Standby를 같은 사양으로 구성
+- **Coordinator 서버**: 두 서버의 상태를 감시하고, Primary 장애 시 Standby로 **즉시 절체**
+
+## 트레이드오프
+- **비용**: 동일 스펙 서버 2대로 초기 비용 **2배**
+- **효과**: 장애 1회당 다운타임 수십 분 → **1초 이내**
+
+
+## 개선 효과
+| 지표 | Before | After |
+|---|---|---|
+| 장애 시 다운타임 | 수십 분 이상 | **1초 이내 (99% 이상 단축)** |
+| 복구 방식 | 운영자 수동 확인·복구 | **Coordinator 자동 절체** |
+| 운영 | 장애 = 서비스 중단 | **무중단 운영** |
+
+> 99% 산정 기준: "수십 분"을 보수적으로 10분(600초)으로 잡아도 600초 → 1초는 99.8% 단축
+
+## 구조도 (Mermaid)
+```mermaid
+flowchart TB
+    CO[Coordinator 서버<br/>상태 감시 · 절체 판단]
+    P[Primary 서버<br/>운영]
+    S[Standby 서버<br/>동일 스펙]
+    CO <-. 상태 감시 .-> P
+    CO <-. 상태 감시 .-> S
+    P -- 장애 시 즉시 절체 1초 이내 --> S
+<img width="2061" height="889" alt="case2_tradeoff" src="https://github.com/user-attachments/assets/0e31814e-dad3-4e1d-9d86-dda9aba23b61" />
+<img width="2016" height="1140" alt="case2_architecture" src="https://github.com/user-attachments/assets/2d40a72b-12aa-43e2-9f3f-5840b03b83d9" />
+
